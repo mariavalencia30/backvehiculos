@@ -32,7 +32,7 @@ class Vehiculo {
     // Método para guardar vehículo en la base de datos
     static async guardarVehiculo(vehiculo) {
         const [result] = await connection.execute(
-            'INSERT INTO vehiculos (id, marca, modelo, año, precio, kilometraje, estado) VALUES (?, ?, ?, ?, ?, ?, ?)', 
+            'INSERT INTO vehiculos (id, marca, modelo, año, precio, kilometraje, estado) VALUES (?, ?, ?, ?, ?, ?, ?)',
             [vehiculo.id, vehiculo.marca, vehiculo.modelo, vehiculo.año, vehiculo.precio, vehiculo.kilometraje, vehiculo.estado]
         );
         return result;
@@ -74,7 +74,7 @@ class Vehiculo {
     // Método para buscar vehículos por nombre
     static async buscarPorNombre(nombre) {
         const [rows] = await connection.execute(
-            'SELECT * FROM vehiculos WHERE modelo LIKE ?', [`%${nombre}%`]
+            'SELECT * FROM vehiculos WHERE modelo LIKE ? OR marca LIKE ?', [`%${nombre}%`, `%${nombre}%`]
         );
         return rows;
     }
