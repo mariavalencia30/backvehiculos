@@ -74,7 +74,7 @@ const marcarComoVendido = async (req, res) => {
 
 // Buscar vehículos por nombre
 const buscarVehiculosPorNombre = async (req, res) => {
-    const { nombre } = req.query;
+    const { nombre } = req.params;
     try {
         const vehiculos = await Vehiculo.buscarPorNombre(nombre);
         res.status(200).json(vehiculos);
