@@ -74,7 +74,8 @@ class Vehiculo {
     // Método para buscar vehículos por nombre
     static async buscarPorNombre(nombre) {
         const [rows] = await connection.execute(
-            'SELECT * FROM vehiculos WHERE lower(modelo) LIKE "%' + nombre.toLowerCase() + '%"'
+            'SELECT * FROM vehiculos'
+            //'SELECT * FROM vehiculos WHERE lower(modelo) LIKE "%' + nombre.toLowerCase() + '%"'
         );
         return rows;
     }
