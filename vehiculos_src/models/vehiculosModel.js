@@ -70,6 +70,14 @@ class Vehiculo {
         const [result] = await connection.execute('UPDATE vehiculos SET estado = ? WHERE id = ?', ['vendido', id]);
         return result;
     }
+
+    // Método para buscar vehículos por nombre
+    static async buscarPorNombre(nombre) {
+        const [rows] = await connection.execute(
+            'SELECT * FROM vehiculos WHERE modelo LIKE ?', [`%${nombre}%`]
+        );
+        return rows;
+    }
 }
 
 module.exports = Vehiculo;
