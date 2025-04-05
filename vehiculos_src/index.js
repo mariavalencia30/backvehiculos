@@ -16,7 +16,7 @@ app.get("/api/vehiculos/:id", vehiculosController.getVehiculoPorId);  // Ruta pa
 app.put("/api/vehiculos/:id", vehiculosController.putVehiculo); // Ruta para actualizar un vehículo por ID (PUT)
 app.delete("/api/vehiculos/:id", vehiculosController.deleteVehiculo); // Ruta para eliminar un vehículo por ID (DELETE)
 app.post("/api/vehiculos/venta/:id", vehiculosController.marcarComoVendido); // Ruta para marcar vehículo como vendido (POST)
-app.get("/api/vehiculos/buscar", vehiculosController.buscarVehiculosPorNombre); // Ruta para buscar vehículos por nombre
+app.post("/api/vehiculos/buscar", vehiculosController.buscarVehiculosPorNombre); // Ruta para buscar vehículos por nombre
 
 // Verifica que la ruta de prueba funcione
 app.get("/api/vehiculos/test", (req, res) => {
