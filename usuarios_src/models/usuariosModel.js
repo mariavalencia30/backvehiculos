@@ -7,7 +7,7 @@ const jwt = require("jsonwebtoken");
 const connection = mysql.createPool({
     host: "localhost",
     user: "root",
-    password: "",
+    password: "your_new_password",
     database: "usuariosbd",
     port: 3306,
 });
