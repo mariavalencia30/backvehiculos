@@ -1,22 +1,30 @@
-// index.js
 const express = require("express");
 const morgan = require("morgan");
 const cors = require("cors");
-const vehiculosController = require("./controllers/vehiculosController"); // Asegúrate de que la ruta sea correcta
+const vehiculosController = require("./controllers/vehiculosController"); // Importar el controlador
 
-// Crear la aplicación de Express
 const app = express();
 
-// Configurar middlewares
-app.use(morgan("dev")); // Mostrar logs de las solicitudes
-app.use(express.json()); // Parsear cuerpos JSON
-app.use(cors()); // Habilitar CORS
+app.use(morgan("dev"));
+app.use(express.json());  // Asegúrate de que el servidor pueda leer JSON
+app.use(cors());  // Habilitar CORS
 
-// Registrar rutas del controlador de vehículos
-app.use("/api/vehiculos", vehiculosController); // Cambié la ruta base a '/api/vehiculos'
+// Registrar las rutas del controlador de vehículos
+app.post("/api/vehiculos", vehiculosController.postVehiculo);  // Ruta para crear un vehículo (POST)
+app.get("/api/vehiculos", vehiculosController.getVehiculos);   // Ruta para obtener todos los vehículos (GET)
+app.get("/api/vehiculos/:id", vehiculosController.getVehiculoPorId);  // Ruta para obtener un vehículo por ID (GET)
+app.put("/api/vehiculos/:id", vehiculosController.putVehiculo); // Ruta para actualizar un vehículo por ID (PUT)
+app.delete("/api/vehiculos/:id", vehiculosController.deleteVehiculo); // Ruta para eliminar un vehículo por ID (DELETE)
+app.post("/api/vehiculos/venta/:id", vehiculosController.marcarComoVendido); // Ruta para marcar vehículo como vendido (POST)
+app.get("/api/vehiculos/buscar", vehiculosController.buscarVehiculosPorNombre); // Ruta para buscar vehículos por nombre
 
-// Iniciar el servidor
-const PORT = 3308; // O cualquier puerto que desees
+// Verifica que la ruta de prueba funcione
+app.get("/api/vehiculos/test", (req, res) => {
+    res.status(200).json({ message: "Ruta de prueba funcionando" });
+});
+
+// Inicia el servidor en el puerto 3303
+const PORT = 3303;  // Cambié el puerto a 3303
 app.listen(PORT, () => {
     console.log(`Microservicio de Vehículos escuchando en el puerto ${PORT}`);
 });

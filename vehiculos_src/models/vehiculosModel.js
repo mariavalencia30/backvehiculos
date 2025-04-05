@@ -9,6 +9,13 @@ const connection = mysql.createPool({
     database: "vehiculosbd",
     port: 3306,
 });
+// Agrega esto después de crear el pool de conexión:
+connection.getConnection()
+    .then(() => console.log("✅ Conexión a MySQL establecida"))
+    .catch(err => {
+        console.error("❌ Error de conexión a MySQL:", err.message);
+        process.exit(1); // Termina el proceso con error
+    });
 
 // Clase Vehiculo
 class Vehiculo {

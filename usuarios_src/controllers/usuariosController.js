@@ -5,10 +5,18 @@ const Usuario = require("../models/usuariosModel");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 
-// Registro de usuario
+/// Registrar un usuario
 router.post("/api/usuarios/register", async (req, res) => {
     const { email, nombre, telefono, contraseña } = req.body;
+
     try {
+        // Verificar si el email ya existe
+        const usuarioExistente = await Usuario.obtenerUsuarioPorEmail(email);
+        if (usuarioExistente) {
+            return res.status(400).json({ message: "El correo electrónico ya está registrado" });
+        }
+
+        // Si el email no existe, registrar el nuevo usuario
         const result = await Usuario.registrarUsuario(email, nombre, telefono, contraseña);
         res.status(201).json({ message: "Usuario registrado exitosamente" });
     } catch (err) {

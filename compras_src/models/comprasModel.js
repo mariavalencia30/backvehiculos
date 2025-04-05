@@ -1,29 +1,22 @@
 // comprasModel.js
+
 const mysql = require("mysql2/promise");
 
-// Configurar la conexión a la base de datos
+// Configuración de la conexión a la base de datos MySQL
 const connection = mysql.createPool({
     host: "localhost",
     user: "root",
     password: "",
-    database: "comprasbd",
+    database: "comprasbd", // Base de datos para registrar compras
     port: 3306,
 });
 
 // Definir la clase Compra
 class Compra {
-    constructor(userId, vehicleId, fecha, precioTotal, metodoPago, estado) {
-        this.userId = userId;
-        this.vehicleId = vehicleId;
-        this.fecha = fecha;
-        this.precioTotal = precioTotal;
-        this.metodoPago = metodoPago;
-        this.estado = estado || "pendiente";  // Estado por defecto: pendiente
-    }
-
-    // Método para registrar una compra
+    // Método para registrar una compra sin claves foráneas
     static async registrarCompra(userId, vehicleId, precioTotal, metodoPago) {
         const fecha = new Date();
+        // Aquí ya no hay dependencia de las claves foráneas
         const [result] = await connection.execute(
             'INSERT INTO compras (user_id, vehicle_id, fecha, precio_total, metodo_pago, estado) VALUES (?, ?, ?, ?, ?, ?)',
             [userId, vehicleId, fecha, precioTotal, metodoPago, "pendiente"]
@@ -60,11 +53,14 @@ class Compra {
 
     // Método para marcar una compra como "venta realizada"
     static async registrarVenta(purchaseId) {
-        const [result] = await connection.execute('UPDATE compras SET estado = ? WHERE id = ?', ['vendido', purchaseId]);
+        const [result] = await connection.execute(
+            'UPDATE compras SET estado = "venta realizada" WHERE id = ?',
+            [purchaseId]
+        );
         return result;
     }
 
-    // Método para registrar una visita de un posible comprador
+    // Método para registrar una visita de un posible comprador a un vehículo
     static async registrarVisita(userId, vehicleId) {
         const fecha = new Date();
         const [result] = await connection.execute(
