@@ -74,9 +74,9 @@ const marcarComoVendido = async (req, res) => {
 
 // Buscar vehículos por nombre
 const buscarVehiculosPorNombre = async (req, res) => {
-    const { nombre } = req.body;
+    const { query } = req.body;
     try {
-        const vehiculos = await Vehiculo.buscarPorNombre(nombre);
+        const vehiculos = await Vehiculo.buscarPorNombre(query);
         res.status(200).json(vehiculos);
     } catch (err) {
         res.status(500).json({ message: `Error al buscar vehículo por nombre: ${nombre}`, error: err });
