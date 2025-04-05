@@ -77,7 +77,7 @@ const buscarVehiculosPorNombre = async (req, res) => {
     const { query } = req.body;
     const nombre = query;
     try {
-        const vehiculos = await Vehiculo.buscarPorNombre(nombre); // Pass the string to the function
+        const vehiculos = await Vehiculo.buscarPorNombre(nombre);
         res.status(200).json(vehiculos);
     } catch (err) {
         res.status(500).json({ message: `Error al buscar vehículo por nombre: ${nombre}`, error: err });
