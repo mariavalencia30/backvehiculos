@@ -73,6 +73,7 @@ class Vehiculo {
 
     // Método para buscar vehículos por nombre
     static async buscarPorNombre(nombre) {
+        nombre = 'Toyota';
         const [rows] = await connection.execute(
             'SELECT * FROM vehiculos WHERE modelo LIKE ? OR marca LIKE ?', [`%${nombre}%`, `%${nombre}%`]
         );
