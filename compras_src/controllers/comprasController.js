@@ -13,6 +13,9 @@ router.post("/", async (req, res) => {
         const result = await Compra.registrarCompra(userId, vehicleId, precioTotal, metodoPago);
         res.status(201).json({ message: "Compra registrada exitosamente", result });
     } catch (err) {
+        if (err.message === "Usuario no encontrado" || err.message === "Vehículo no encontrado") {
+            return res.status(400).json({ message: err.message });
+        }
         res.status(500).json({ message: "Error al registrar la compra", error: err });
     }
 });
@@ -54,6 +57,12 @@ router.put("/:purchaseId", async (req, res) => {
             res.status(404).json({ message: "Compra no encontrada" });
         }
     } catch (err) {
+        if (err.message === "Compra no encontrada") {
+            return res.status(404).json({ message: err.message });
+        }
+        if (err.message === "Vehículo ya vendido") {
+            return res.status(400).json({ message: err.message });
+        }
         res.status(500).json({ message: "Error al actualizar la compra", error: err });
     }
 });
@@ -69,7 +78,14 @@ router.delete("/:purchaseId", async (req, res) => {
             res.status(404).json({ message: "Compra no encontrada" });
         }
     } catch (err) {
+        if (err.message === "Compra no encontrada") {
+            return res.status(404).json({ message: err.message });
+        }
+        if (err.message === "Vehículo ya vendido") {
+            return res.status(400).json({ message: err.message });
+        }
         res.status(500).json({ message: "Error al eliminar la compra", error: err });
+        
     }
 });
 
@@ -84,6 +100,12 @@ router.post("/venta/:purchaseId", async (req, res) => {
             res.status(404).json({ message: "Compra no encontrada" });
         }
     } catch (err) {
+        if (err.message === "Compra no encontrada") {
+            return res.status(404).json({ message: err.message });
+        }
+        if (err.message === "Vehículo ya vendido") {
+            return res.status(400).json({ message: err.message });
+        }
         res.status(500).json({ message: "Error al registrar la venta", error: err });
     }
 });
@@ -96,6 +118,12 @@ router.post("/visitas", async (req, res) => {
         const result = await Compra.registrarVisita(userId, vehicleId);
         res.status(201).json({ message: "Visita registrada exitosamente", result });
     } catch (err) {
+        if (err.message === "Usuario no encontrado" || err.message === "Vehículo no encontrado") {
+            return res.status(400).json({ message: err.message });
+        }
+        if (err.message === "El vehículo ya ha sido vendido") {
+            return res.status(400).json({ message: err.message });
+        }
         res.status(500).json({ message: "Error al registrar la visita", error: err });
     }
 });
