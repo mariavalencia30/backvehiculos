@@ -16,7 +16,7 @@ app.use(cors()); // Habilitar CORS
 app.use(usuariosController);
 
 // Iniciar el servidor
-const PORT = 3309;
+const PORT = 3001;
 app.listen(PORT, () => {
     console.log(`Microservicio de usuarios escuchando en el puerto ${PORT}`);
 });

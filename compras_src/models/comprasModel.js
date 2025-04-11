@@ -1,6 +1,7 @@
 // comprasModel.js
 
 const mysql = require("mysql2/promise");
+const fetch = require("node-fetch");
 
 // Configuración de la conexión a la base de datos MySQL
 const connection = mysql.createPool({
@@ -11,41 +12,63 @@ const connection = mysql.createPool({
     port: 3306,
 });
 
-const URLUSERS = "http://localhost:3309"
-const URLCARS = "http://localhost:3303"
-// Definir la clase Compra
-class Compra {
-    // Método para registrar una compra sin claves foráneas
-    static async registrarCompra(userId, vehicleId, precioTotal, metodoPago) {
-        const fecha = new Date();
-        // validaciones de los datos
-        // Aquí podrías agregar lógica para verificar si el usuario y el vehículo existen
+// URL de los microservicios
+const URLUSERS = "http://localhost:3001";
+const URLCARS = "http://localhost:3002";
 
-        if (!userId || !vehicleId || !precioTotal || !metodoPago) {
-            throw new Error("Todos los campos son obligatorios");
+class Compra {
+    // Método para registrar una compra
+    // Método para registrar una compra
+    static async registrarCompra(userId, vehicleId, precioTotal, metodoPago, visitaId) {
+        console.log("Registrando compra con los siguientes datos:", { userId, vehicleId, precioTotal, metodoPago, visitaId });
+
+        // Validar los parámetros antes de realizar la consulta
+        if (userId === undefined || vehicleId === undefined || precioTotal === undefined || metodoPago === undefined) {
+            throw new Error("Todos los campos son obligatorios y no deben ser undefined.");
         }
-        // validar con los microservicios que el usuario y el vehiculo existen
-        const userResponse = await fetch(`${URLUSERS}/api/usuarios/${userId}`);
-        const userData = await userResponse.json();
-        if (!userData) {
-            throw new Error("Usuario no encontrado");
+
+        const fecha = new Date();  // Fecha actual
+
+        // Si alguno de los valores es 'undefined', se pasa como 'null'
+        const finalUserId = userId || null;
+        const finalVehicleId = vehicleId || null;
+        const finalPrecioTotal = precioTotal || null;
+        const finalMetodoPago = metodoPago || null;
+
+        try {
+            // Verificación con microservicios (usuario y vehículo)
+            const userResponse = await fetch(`${URLUSERS}/api/usuarios/${userId}`);
+            const userData = await userResponse.json();
+            if (!userData) {
+                throw new Error("Usuario no encontrado");
+            }
+
+            const vehicleResponse = await fetch(`${URLCARS}/api/vehiculos/${vehicleId}`);
+            const vehicleData = await vehicleResponse.json();
+            if (!vehicleData) {
+                throw new Error("Vehículo no encontrado");
+            }
+
+            // Verificar si el vehículo ya está vendido
+            if (vehicleData.estado === "vendido") {
+                throw new Error("El vehículo ya ha sido vendido");
+            }
+
+            // Registrar la compra
+            const [result] = await connection.execute(
+                'INSERT INTO compras (user_id, vehicle_id, fecha, precio_total, metodo_pago, estado, visita_id) VALUES (?, ?, ?, ?, ?, ?, ?)',
+                [finalUserId, finalVehicleId, fecha, finalPrecioTotal, finalMetodoPago, "pendiente", visitaId]
+            );
+
+            console.log("Compra registrada exitosamente:", result);
+            return result;
+        } catch (err) {
+            // Registrar el error completo
+            console.error("Error completo al registrar la compra en la base de datos:", err);
+            throw new Error("Error al registrar la compra");
         }
-        const vehicleResponse = await fetch(`${URLCARS}/api/vehiculos/${vehicleId}`);
-        const vehicleData = await vehicleResponse.json();
-        if (!vehicleData) {
-            throw new Error("Vehículo no encontrado");
-        }
-        // Aquí podrías agregar lógica para verificar si el vehículo ya está vendido
-        if (vehicleData.estado === "vendido") {
-            throw new Error("El vehículo ya ha sido vendido");
-        }
-        // Aquí ya no hay dependencia de las claves foráneas
-        const [result] = await connection.execute(
-            'INSERT INTO compras (user_id, vehicle_id, fecha, precio_total, metodo_pago, estado) VALUES (?, ?, ?, ?, ?, ?)',
-            [userId, vehicleId, fecha, precioTotal, metodoPago, "pendiente"]
-        );
-        return result;
     }
+
 
     // Método para obtener las compras de un usuario
     static async obtenerComprasPorUsuario(userId) {
@@ -116,7 +139,7 @@ class Compra {
     }
 
     // Método para registrar una visita de un posible comprador a un vehículo
-    static async registrarVisita(userId, vehicleId) {
+    static async registrarVisita(userId, vehicleId, asistio) {
         // validaciones de los datos
         if (!userId || !vehicleId) {
             throw new Error("Todos los campos son obligatorios");
@@ -138,11 +161,12 @@ class Compra {
         }
         const fecha = new Date();
         const [result] = await connection.execute(
-            'INSERT INTO visitas (user_id, vehicle_id, fecha) VALUES (?, ?, ?)',
-            [userId, vehicleId, fecha]
+            'INSERT INTO visitas (user_id, vehicle_id, fecha, asistio) VALUES (?, ?, ?, ?)',
+            [userId, vehicleId, fecha, asistio]
         );
         return result;
     }
+
 }
 
 module.exports = Compra;

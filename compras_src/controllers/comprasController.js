@@ -6,19 +6,26 @@ const Compra = require("../models/comprasModel"); // Asegúrate de que el modelo
 
 // Registrar una compra
 router.post("/", async (req, res) => {
-    const { userId, vehicleId, precioTotal, metodoPago } = req.body;
+    const { userId, vehicleId, precioTotal, metodoPago, visitaId } = req.body;
+
+    // Verificar si hay parámetros undefined
+    if (!userId || !vehicleId || !precioTotal || !metodoPago || !visitaId) {
+        return res.status(400).json({ message: "Todos los campos son obligatorios" });
+    }
+
+    console.log("Datos recibidos para registrar la compra:", { userId, vehicleId, precioTotal, metodoPago, visitaId });
+
     try {
-        // Aquí no necesitamos validar la existencia del usuario ni del vehículo,
-        // simplemente registramos la compra en la base de datos.
-        const result = await Compra.registrarCompra(userId, vehicleId, precioTotal, metodoPago);
+        // Registrar la compra
+        const result = await Compra.registrarCompra(userId, vehicleId, precioTotal, metodoPago, visitaId);
         res.status(201).json({ message: "Compra registrada exitosamente", result });
     } catch (err) {
-        if (err.message === "Usuario no encontrado" || err.message === "Vehículo no encontrado") {
-            return res.status(400).json({ message: err.message });
-        }
-        res.status(500).json({ message: "Error al registrar la compra", error: err });
+        // Aquí mejoramos el log del error
+        console.error("Error completo al registrar la compra:", err);  // Log completo del error
+        res.status(500).json({ message: "Error al registrar la compra", error: err.message, stack: err.stack });
     }
 });
+
 
 // Obtener las compras de un usuario
 router.get("/user/:userId", async (req, res) => {
@@ -112,10 +119,11 @@ router.post("/venta/:purchaseId", async (req, res) => {
 
 // Registrar una visita de un comprador a un vehículo
 router.post("/visitas", async (req, res) => {
-    const { userId, vehicleId } = req.body;
+    const { userId, vehicleId, asistio } = req.body;  // Recibimos el valor de 'asistio'
+    
     try {
         // Ya no es necesario hacer validación externa, solo registramos la visita
-        const result = await Compra.registrarVisita(userId, vehicleId);
+        const result = await Compra.registrarVisita(userId, vehicleId, asistio);  // Pasamos 'asistio' aquí
         res.status(201).json({ message: "Visita registrada exitosamente", result });
     } catch (err) {
         if (err.message === "Usuario no encontrado" || err.message === "Vehículo no encontrado") {
@@ -127,6 +135,7 @@ router.post("/visitas", async (req, res) => {
         res.status(500).json({ message: "Error al registrar la visita", error: err });
     }
 });
+
 
 // Ruta de prueba (para verificar que las rutas están funcionando)
 router.get("/test", (req, res) => {

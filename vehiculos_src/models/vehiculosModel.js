@@ -29,11 +29,19 @@ class Vehiculo {
         this.estado = "disponible";  // Estado por defecto
     }
 
-    // Método para guardar vehículo en la base de datos
+    // Método para guardar un vehículo en la base de datos
     static async guardarVehiculo(vehiculo) {
+        // Depuración adicional para verificar los valores antes de la validación
+        console.log("Vehículo a guardar:", vehiculo);
+
+        // Asegurarse de que los valores no sean undefined, null, o vacíos
+        if (!vehiculo.marca || !vehiculo.modelo || !vehiculo.año || !vehiculo.precio || !vehiculo.kilometraje) {
+            throw new Error("Faltan datos requeridos para crear el vehículo");
+        }
+
         const [result] = await connection.execute(
-            'INSERT INTO vehiculos (id, marca, modelo, año, precio, kilometraje, estado) VALUES (?, ?, ?, ?, ?, ?, ?)',
-            [vehiculo.id, vehiculo.marca, vehiculo.modelo, vehiculo.año, vehiculo.precio, vehiculo.kilometraje, vehiculo.estado]
+            'INSERT INTO vehiculos (marca, modelo, año, precio, kilometraje, estado) VALUES (?, ?, ?, ?, ?, ?)',
+            [vehiculo.marca, vehiculo.modelo, vehiculo.año, vehiculo.precio, vehiculo.kilometraje, "disponible"]  // Estado por defecto 'disponible'
         );
         return result;
     }
@@ -71,13 +79,58 @@ class Vehiculo {
         return result;
     }
 
-    // Método para buscar vehículos por nombre
-    static async buscarPorNombre(nombre) {
-        const [rows] = await connection.execute(
-            'SELECT * FROM vehiculos WHERE lower(modelo) LIKE "%' + nombre.toLowerCase() + '%" OR lower(marca) LIKE "%' + nombre.toLowerCase() + '%"'
-        );
-        return rows;
+    // Método para buscar vehículos por nombre (marca o modelo)
+    static async buscarVehiculos(filtros = {}) {
+        // Validación básica
+        if (!filtros || typeof filtros !== 'object') {
+            console.warn("[Modelo] Filtros inválidos");
+            return [];
+        }
+
+        console.log("[Modelo] Filtros recibidos:", filtros);
+
+        try {
+            let query = `SELECT * FROM vehiculos WHERE 1=1`;
+            const valores = [];
+
+            // Filtros existentes (marca, modelo, año)
+            if (filtros.marca) {
+                query += ` AND LOWER(marca) LIKE ?`;
+                valores.push(`%${filtros.marca.toLowerCase().trim()}%`);
+            }
+            if (filtros.modelo) {
+                query += ` AND LOWER(modelo) LIKE ?`;
+                valores.push(`%${filtros.modelo.toLowerCase().trim()}%`);
+            }
+            if (filtros.año) {
+                query += ` AND año = ?`;
+                valores.push(parseInt(filtros.año));
+            }
+
+            // Nuevos filtros: estado y precio
+            if (filtros.estado) {
+                query += ` AND estado = ?`;
+                valores.push(filtros.estado.trim()); // Ej: "disponible", "vendido"
+            }
+            if (filtros.precio_max) {
+                query += ` AND precio <= ?`;
+                valores.push(parseFloat(filtros.precio_max)); // Busca vehículos <= precio_max
+            }
+            if (filtros.precio_min) {
+                query += ` AND precio >= ?`;
+                valores.push(parseFloat(filtros.precio_min)); // Busca vehículos >= precio_min
+            }
+
+            console.log("[Modelo] Consulta SQL:", query, valores);
+            const [rows] = await connection.execute(query, valores);
+            console.log(`[Modelo] ${rows.length} resultados encontrados`);
+
+            return rows;
+
+        } catch (err) {
+            console.error("[Modelo] Error en búsqueda:", err.message);
+            throw new Error("Error al filtrar vehículos");
+        }
     }
 }
-
 module.exports = Vehiculo;

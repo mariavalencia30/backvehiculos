@@ -20,7 +20,7 @@ app.get("/api/compras/test", (req, res) => {
 });
 
 // Iniciar el servidor
-const PORT = 3310;
+const PORT = 3005;
 app.listen(PORT, () => {
     console.log(`Microservicio de Compras escuchando en el puerto ${PORT}`);
 });

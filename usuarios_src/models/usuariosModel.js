@@ -68,6 +68,11 @@ class Usuario {
     static generarToken(id) {
         return jwt.sign({ id }, "secretkey", { expiresIn: "1h" });
     }
+    // Método para obtener todos los usuarios
+    static async obtenerTodosUsuarios() {
+        const [rows] = await connection.execute('SELECT * FROM usuarios');  // Consulta a la base de datos
+        return rows;  // Retornamos todos los usuarios
+    }
 }
 
 module.exports = Usuario;

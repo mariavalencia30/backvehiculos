@@ -114,5 +114,15 @@ router.put("/api/usuarios/password-change", async (req, res) => {
         res.status(500).json({ message: "Error al cambiar contraseña", error: err });
     }
 });
+// Obtener todos los usuarios
+router.get("/api/usuarios", async (req, res) => {
+    try {
+        const usuarios = await Usuario.obtenerTodosUsuarios();  // Llamamos al método del modelo
+        res.status(200).json(usuarios);  // Enviamos la lista de usuarios como respuesta
+    } catch (err) {
+        res.status(500).json({ message: "Error al obtener los usuarios", error: err });
+    }
+});
+
 
 module.exports = router;
