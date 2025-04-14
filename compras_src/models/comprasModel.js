@@ -7,7 +7,7 @@ const fetch = require("node-fetch");
 const connection = mysql.createPool({
     host: "localhost",
     user: "root",
-    password: "",
+    password: "mysql",
     database: "comprasbd", // Base de datos para registrar compras
     port: 3306,
 });
