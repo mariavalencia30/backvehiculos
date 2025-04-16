@@ -1,11 +1,9 @@
 // usuariosController.js
 const express = require("express");
 const router = express.Router();
-const Usuario = require("../models/usuariosModel");
-const bcrypt = require("bcrypt");
-const jwt = require("jsonwebtoken");
+const Usuario = require("../models/usuariosModel");  // Solo importa la clase Usuario
 
-/// Registrar un usuario
+// Registrar un usuario
 router.post("/api/usuarios/register", async (req, res) => {
     const { email, nombre, telefono, contraseña } = req.body;
 
@@ -16,7 +14,7 @@ router.post("/api/usuarios/register", async (req, res) => {
             return res.status(400).json({ message: "El correo electrónico ya está registrado" });
         }
 
-        // Si el email no existe, registrar el nuevo usuario
+        // Registrar usuario sin encriptar la contraseña
         const result = await Usuario.registrarUsuario(email, nombre, telefono, contraseña);
         res.status(201).json({ message: "Usuario registrado exitosamente" });
     } catch (err) {
@@ -24,24 +22,42 @@ router.post("/api/usuarios/register", async (req, res) => {
     }
 });
 
-// Autenticación de usuario (login)
-router.post("/api/usuarios/login", async (req, res) => {
+// Ruta de login
+router.post('/api/usuarios/login', async (req, res) => {
     const { email, contraseña } = req.body;
+
+    if (!email || !contraseña) {
+        return res.status(400).json({ message: "Faltan datos" });
+    }
+
     try {
+        // Verificar las credenciales usando el método de la clase Usuario
         const usuario = await Usuario.obtenerUsuarioPorEmail(email);
+
         if (!usuario) {
             return res.status(404).json({ message: "Usuario no encontrado" });
         }
-        const esValido = await Usuario.compararContraseñas(contraseña, usuario.contraseña);
-        if (!esValido) {
-            return res.status(400).json({ message: "Contraseña incorrecta" });
+
+        // Imprimir las contraseñas para depuración
+        console.log(`Contraseña ingresada: '${contraseña}'`);
+        console.log(`Contraseña almacenada en la base de datos: '${usuario.contraseña}'`);
+
+        // Comparar las contraseñas (en texto plano)
+        if (usuario.contraseña.trim() !== contraseña.trim()) {
+            return res.status(401).json({ message: "Contraseña incorrecta" });
         }
-        const token = Usuario.generarToken(usuario.id);
-        res.status(200).json({ message: "Autenticación exitosa", token });
+
+        return res.status(200).json({
+            message: "Login exitoso",
+            role: usuario.rol || 'user',  // Si no tiene rol asignado, asignamos "user" por defecto
+            redirect: usuario.rol === 'admin' ? '/admin' : '/perfil'  // Redirigir dependiendo del rol
+        });
     } catch (err) {
-        res.status(500).json({ message: "Error en la autenticación", error: err });
+        console.log('Error en la base de datos:', err);
+        return res.status(500).json({ message: "Error en la base de datos", error: err });
     }
 });
+
 
 // Obtener información del usuario
 router.get("/api/usuarios/:id", async (req, res) => {
@@ -57,19 +73,23 @@ router.get("/api/usuarios/:id", async (req, res) => {
     }
 });
 
-// Actualizar datos del usuario
+// Ruta PUT para actualizar un usuario
 router.put("/api/usuarios/:id", async (req, res) => {
     const { id } = req.params;
-    const { email, nombre, telefono } = req.body;
+    const { email, nombre, telefono, contraseña } = req.body;
+
     try {
-        const result = await Usuario.actualizarUsuario(id, email, nombre, telefono);
+        // Llamamos al método actualizarUsuario del modelo
+        const result = await Usuario.actualizarUsuario(id, email, nombre, telefono, contraseña);
+
         if (result.affectedRows > 0) {
             res.status(200).json({ message: "Datos actualizados exitosamente" });
         } else {
             res.status(404).json({ message: "Usuario no encontrado" });
         }
     } catch (err) {
-        res.status(500).json({ message: "Error al actualizar datos", error: err });
+        console.error("Error en la actualización de datos:", err);  // Depuración del error
+        res.status(500).json({ message: "Error al actualizar datos", error: err.message });
     }
 });
 
@@ -117,9 +137,11 @@ router.put("/api/usuarios/password-change", async (req, res) => {
 // Obtener todos los usuarios
 router.get("/api/usuarios", async (req, res) => {
     try {
-        const usuarios = await Usuario.obtenerTodosUsuarios();  // Llamamos al método del modelo
-        res.status(200).json(usuarios);  // Enviamos la lista de usuarios como respuesta
+        // Usar el método obtenerTodosUsuarios de la clase Usuario
+        const usuarios = await Usuario.obtenerTodosUsuarios();
+        res.status(200).json(usuarios);  // Devolver la lista de usuarios
     } catch (err) {
+        console.log('Error al obtener usuarios:', err);
         res.status(500).json({ message: "Error al obtener los usuarios", error: err });
     }
 });

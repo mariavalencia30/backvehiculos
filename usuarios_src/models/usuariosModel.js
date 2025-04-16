@@ -1,7 +1,5 @@
 // usuariosModel.js
 const mysql = require("mysql2/promise");
-const bcrypt = require("bcrypt");
-const jwt = require("jsonwebtoken");
 
 // Configurar la conexión a la base de datos
 const connection = mysql.createPool({
@@ -24,10 +22,9 @@ class Usuario {
 
     // Método para guardar usuario en la base de datos
     static async registrarUsuario(email, nombre, telefono, contraseña) {
-        const hashedPassword = await bcrypt.hash(contraseña, 10);
         const [result] = await connection.execute(
             'INSERT INTO usuarios (email, nombre, telefono, contraseña) VALUES (?, ?, ?, ?)',
-            [email, nombre, telefono, hashedPassword]
+            [email, nombre, telefono, contraseña]  // Sin encriptar la contraseña
         );
         return result;
     }
@@ -44,35 +41,27 @@ class Usuario {
         return rows[0];
     }
 
-    // Método para actualizar usuario por id
-    static async actualizarUsuario(id, email, nombre, telefono) {
-        const [result] = await connection.execute(
-            'UPDATE usuarios SET email = ?, nombre = ?, telefono = ? WHERE id = ?',
-            [email, nombre, telefono, id]
-        );
-        return result;
-    }
+// Método para actualizar un usuario 
+static async actualizarUsuario(id, email, nombre, telefono, contraseña) {
+    const [result] = await connection.execute(
+        'UPDATE usuarios SET email = ?, nombre = ?, telefono = ?, contraseña = ? WHERE id = ?',
+        [email, nombre, telefono, contraseña, id]
+    );
+    return result;
+}
 
     // Método para eliminar usuario por id
     static async eliminarUsuario(id) {
-        const [result] = await connection.execute('DELETE FROM usuarios WHERE id = ?', [id]);
-        return result;
-    }
-
-    // Método para comparar contraseñas
-    static async compararContraseñas(contraseña, hash) {
-        return bcrypt.compare(contraseña, hash);
-    }
-
-    // Método para generar un token JWT
-    static generarToken(id) {
-        return jwt.sign({ id }, "secretkey", { expiresIn: "1h" });
-    }
-    // Método para obtener todos los usuarios
-    static async obtenerTodosUsuarios() {
-        const [rows] = await connection.execute('SELECT * FROM usuarios');  // Consulta a la base de datos
-        return rows;  // Retornamos todos los usuarios
-    }
+    const [result] = await connection.execute('DELETE FROM usuarios WHERE id = ?', [id]);
+    return result;
 }
 
+    // Método para obtener todos los usuarios
+    static async obtenerTodosUsuarios() {
+    const [rows] = await connection.execute('SELECT * FROM usuarios');
+    return rows;  // Retorna todos los usuarios
+}
+}
+
+// Exportar la clase Usuario correctamente
 module.exports = Usuario;
